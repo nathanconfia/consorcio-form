@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Simulação de Consórcio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand: #1B4FD8;
+      --brand-dark: #0F2B8A;
+      --brand-mid: #3B6AF0;
+      --brand-light: #E8EFFE;
+      --gold: #C9933A;
+      --gold-light: #FBF3E4;
+      --success: #1B8B5A;
+      --success-light: #E3F5EC;
+      --danger: #E24B4A;
+      --text-1: #1A1A1A;
+      --text-2: #666;
+      --bg: #fff;
+      --bg2: #F5F6FA;
+      --border: rgba(0,0,0,0.1);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg2);
+      min-height: 100vh;
+      padding-bottom: 60px;
+      color: var(--text-1);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0F2B8A 0%, #1B4FD8 60%, #3B6AF0 100%);
+      padding: 36px 20px 52px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -70px; left: -20px;
+      width: 240px; height: 240px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 11px; font-weight: 500;
+      color: rgba(255,255,255,0.9);
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .hero-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 28px; font-weight: 700;
+      color: #fff; line-height: 1.2;
+      margin-bottom: 10px;
+      position: relative; z-index: 1;
+    }
+    .hero-title span { color: #FFD166; }
+    .hero-sub {
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.5;
+      position: relative; z-index: 1;
+    }
+
+    .progress-bar {
+      background: var(--bg);
+      padding: 18px 20px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .progress-steps {
+      display: flex; align-items: center;
+      margin-bottom: 10px;
+    }
+    .step-dot {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600;
+      transition: all 0.3s; flex-shrink: 0;
+    }
+    .step-dot.done { background: var(--brand); color: #fff; }
+    .step-dot.active { background: var(--brand); color: #fff; box-shadow: 0 0 0 5px rgba(27,79,216,0.18); }
+    .step-dot.pending { background: var(--bg2); color: var(--text-2); border: 1.5px solid var(--border); }
+    .step-line { flex: 1; height: 2px; background: var(--border); transition: background 0.3s; }
+    .step-line.done { background: var(--brand); }
+    .progress-labels {
+      display: flex; justify-content: space-between;
+      font-size: 10px; color: var(--text-2); padding-bottom: 14px;
+    }
+
+    .card {
+      background: var(--bg);
+      margin: 14px 16px;
+      border-radius: 16px;
+      padding: 22px;
+      border: 0.5px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+
+    .section-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 13px; font-weight: 600;
+      color: var(--brand);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 18px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title i { font-size: 17px; }
+
+    .field-group { margin-bottom: 16px; }
+    .field-label {
+      font-size: 12px; font-weight: 500;
+      color: var(--text-2);
+      margin-bottom: 7px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .required { color: var(--danger); font-size: 10px; }
+
+    .field-input {
+      width: 100%;
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 15px;
+      color: var(--text-1);
+      font-family: 'DM Sans', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .field-input:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(27,79,216,0.12);
+      background: var(--bg);
+    }
+
+    .tipo-toggle {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin-bottom: 18px;
+    }
+    .tipo-btn {
+      padding: 16px 10px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: var(--bg2);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .tipo-btn.selected { border-color: var(--brand); background: var(--brand-light); }
+    .tipo-btn i { font-size: 26px; color: var(--text-2); display: block; margin-bottom: 6px; }
+    .tipo-btn.selected i { color: var(--brand); }
+    .tipo-btn span { font-size: 13px; font-weight: 500; color: var(--text-2); }
+    .tipo-btn.selected span { color: var(--brand); }
+
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .renda-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .renda-chip {
+      padding: 12px 8px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--bg2);
+      cursor: pointer;
+      text-align: center;
+      font-size: 12px; font-weight: 500;
+      color: var(--text-2);
+      transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      line-height: 1.3;
+    }
+    .renda-chip.selected { border-color: var(--gold); background: var(--gold-light); color: #7A5520; }
+
+    .cep-row { display: flex; gap: 8px; }
+    .cep-row .field-input { flex: 1; }
+    .btn-cep {
+      background: var(--brand);
+      color: #fff; border: none;
+      border-radius: 10px;
+      padding: 0 18px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: 'DM Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .btn-cep:active { opacity: 0.8; }
+
+    .nav-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 16px; }
+    .btn-back {
+      padding: 16px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      font-size: 15px; font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s;
+    }
+    .btn-back:hover { background: var(--bg2); }
+    .btn-next {
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #1B4FD8, #3B6AF0);
+      color: #fff;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.2s, transform 0.1s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 4px 16px rgba(27,79,216,0.3);
+    }
+    .btn-next:active { opacity: 0.9; transform: scale(0.98); }
+    .btn-next.full { grid-column: 1 / -1; }
+
+    .hidden { display: none !important; }
+
+    /* SUCCESS */
+    .success-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px 24px 24px;
+      margin: 14px 16px;
+      background: var(--bg);
+      border-radius: 20px;
+      border: 0.5px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+    .success-icon {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      background: var(--success-light);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 22px;
+    }
+    .success-icon i { font-size: 42px; color: var(--success); }
+    .success-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 22px; font-weight: 700;
+      color: var(--text-1); margin-bottom: 8px;
+    }
+    .success-msg {
+      font-size: 13px; color: var(--text-2);
+      line-height: 1.5; margin-bottom: 16px;
+      max-width: 320px;
+    }
+    .summary-card {
+      background: var(--bg2);
+      border-radius: 14px;
+      padding: 12px 14px;
+      width: 100%;
+      text-align: left;
+      border: 0.5px solid var(--border);
+    }
+    .summary-title {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.7px;
+      color: var(--brand); margin-bottom: 10px;
+    }
+    .summary-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 12px;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-row span:first-child { color: var(--text-2); }
+    .summary-row span:last-child { font-weight: 500; color: var(--text-1); max-width: 60%; text-align: right; word-break: break-all; overflow-wrap: anywhere; }
+
+    .wpp-btn {
+      margin-top: 14px;
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      background: #25D366;
+      color: #fff;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      box-shadow: 0 4px 16px rgba(37,211,102,0.3);
+      text-decoration: none;
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    select.field-input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+    @media (min-width: 480px) {
+      body { display: flex; justify-content: center; background: #E8EFFE; }
+      .app-wrap { max-width: 420px; width: 100%; background: var(--bg2); box-shadow: 0 0 40px rgba(0,0,0,0.12); }
+    }
+  </style>
+</head>
+<body>
+<div class="app-wrap">
+
+  <div id="formArea">
+    <div class="hero">
+      <div class="hero-badge"><i class="ti ti-shield-check"></i> 100% seguro</div>
+      <div class="hero-title">Parabéns pela<br><span>decisão!</span> Informe seus dados.</div>
+      <div class="hero-sub">Envie o formulário e finalize a contratação do seu consórcio.</div>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-steps">
+        <div class="step-dot active" id="dot1">1</div>
+        <div class="step-line" id="line1"></div>
+        <div class="step-dot pending" id="dot2">2</div>
+        <div class="step-line" id="line2"></div>
+        <div class="step-dot pending" id="dot3">3</div>
+        <div class="step-line" id="line3"></div>
+        <div class="step-dot pending" id="dot4">4</div>
+      </div>
+      <div class="progress-labels">
+        <span>Dados</span>
+        <span>Contato</span>
+        <span>Endereço</span>
+        <span>Consórcio</span>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div id="step1">
+      <div class="card">
+        <div class="section-title"><i class="ti ti-user-circle"></i> Quem é você?</div>
+
+        <div class="tipo-toggle">
+          <div class="tipo-btn selected" onclick="setTipo('fisica',this)">
+            <i class="ti ti-user"></i>
+            <span>Pessoa Física</span>
+          </div>
+          <div class="tipo-btn" onclick="setTipo('juridica',this)">
+            <i class="ti ti-building"></i>
+            <span>Pessoa Jurídica</span>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field-group">
+            <div class="field-label" id="docLabel">CPF <span class="required">*</span></div>
+            <input class="field-input" id="cpf" type="tel" placeholder="000.000.000-00" maxlength="14" oninput="maskDoc(this)" />
+          </div>
+          <div class="field-group">
+            <div class="field-label" id="nascLabel">Data de nascimento <span class="required">*</span></div>
+            <input class="field-input" id="nascimento" type="tel" placeholder="DD/MM/AAAA" maxlength="10" oninput="maskDate(this)" />
+          </div>
+        </div>
+
+        <div id="cnpjStatus" style="display:none; font-size:12px; color:var(--brand); margin:-10px 0 12px; display:none; align-items:center; gap:6px;">
+          <i class="ti ti-loader" id="cnpjSpinner"></i> <span id="cnpjStatusMsg"></span>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label" id="nomeLabel">Nome completo <span class="required">*</span></div>
+          <input class="field-input" id="nome" type="text" placeholder="Seu nome completo" autocomplete="name" />
+        </div>
+      </div>
+
+      <div class="nav-btns">
+        <div></div>
+        <button class="btn-next full" onclick="goStep(2)">
+          Próximo <i class="ti ti-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="step2" class="hidden">
+      <div class="card">
+        <div class="section-title"><i class="ti ti-chart-bar"></i> Renda &amp; Contato</div>
+
+        <div class="field-group">
+          <div class="field-label">E-mail <span class="required">*</span></div>
+          <input class="field-input" id="email" type="email" placeholder="seu@email.com" autocomplete="email" />
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Celular / WhatsApp <span class="required">*</span></div>
+          <input class="field-input" id="celular" type="tel" placeholder="(11) 99999-9999" maxlength="15" oninput="maskPhone(this)" autocomplete="tel" />
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Renda mensal <span class="required">*</span></div>
+          <div class="renda-options">
+            <div class="renda-chip" onclick="setRenda('Até R$ 3.000',this)">Até R$ 3k</div>
+            <div class="renda-chip" onclick="setRenda('R$ 3.000 – R$ 6.000',this)">R$ 3k – R$ 6k</div>
+            <div class="renda-chip" onclick="setRenda('R$ 6.000 – R$ 10.000',this)">R$ 6k – R$ 10k</div>
+            <div class="renda-chip" onclick="setRenda('R$ 10.000 – R$ 20.000',this)">R$ 10k – R$ 20k</div>
+            <div class="renda-chip" onclick="setRenda('R$ 20.000 – R$ 50.000',this)">R$ 20k – R$ 50k</div>
+            <div class="renda-chip" onclick="setRenda('Acima de R$ 50.000',this)">Acima R$ 50k</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-btns">
+        <button class="btn-back" onclick="goStep(1)">Voltar</button>
+        <button class="btn-next" onclick="goStep(3)">Próximo <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div id="step3" class="hidden">
+      <div class="card">
+        <div class="section-title"><i class="ti ti-map-pin"></i> Endereço</div>
+
+        <div class="field-group">
+          <div class="field-label">CEP <span class="required">*</span></div>
+          <input class="field-input" id="cep" type="tel" placeholder="00000-000" maxlength="9" oninput="maskCepAuto(this)" />
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Logradouro</div>
+          <input class="field-input" id="endereco" type="text" placeholder="Rua, Av., Estrada..." />
+        </div>
+
+        <div class="row2">
+          <div class="field-group">
+            <div class="field-label">Número <span class="required">*</span></div>
+            <input class="field-input" id="numero" type="tel" placeholder="Nº" />
+          </div>
+          <div class="field-group">
+            <div class="field-label">Complemento</div>
+            <input class="field-input" id="complemento" type="text" placeholder="Apto, Sala..." />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Bairro</div>
+          <input class="field-input" id="bairro" type="text" placeholder="Bairro" />
+        </div>
+
+        <div class="row2">
+          <div class="field-group">
+            <div class="field-label">Cidade</div>
+            <input class="field-input" id="cidade" type="text" placeholder="Cidade" />
+          </div>
+          <div class="field-group">
+            <div class="field-label">Estado</div>
+            <select class="field-input" id="estado">
+              <option value="">UF</option>
+              <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+              <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+              <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+              <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+              <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+              <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+              <option selected>SP</option><option>SE</option><option>TO</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-btns">
+        <button class="btn-back" onclick="goStep(2)">Voltar</button>
+        <button class="btn-next" onclick="goStep(4)">Próximo <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div id="step4" class="hidden">
+      <div class="card">
+        <div class="section-title"><i class="ti ti-file-invoice"></i> Dados do Consórcio</div>
+
+        <div class="field-group">
+          <div class="field-label">Crédito contratado (R$) <span class="required">*</span></div>
+          <input class="field-input" id="credito" type="tel" placeholder="Ex: 150.000,00" oninput="maskMoney(this)" />
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Forma de Pagamento da 1ª Parcela <span class="required">*</span></div>
+          <div class="renda-options" style="grid-template-columns: 1fr 1fr 1fr;">
+            <div class="renda-chip" onclick="setPagamento('Boleto',this)"><i class="ti ti-file-text" style="font-size:18px;display:block;margin-bottom:4px;color:inherit"></i>Boleto</div>
+            <div class="renda-chip" onclick="setPagamento('Cartão de Crédito',this)"><i class="ti ti-credit-card" style="font-size:18px;display:block;margin-bottom:4px;color:inherit"></i>Cartão</div>
+            <div class="renda-chip" onclick="setPagamento('PIX',this)"><i class="ti ti-qrcode" style="font-size:18px;display:block;margin-bottom:4px;color:inherit"></i>PIX</div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">Vendedor</div>
+          <input class="field-input" id="vendedor" type="text" placeholder="Nome do vendedor (opcional)" />
+        </div>
+      </div>
+
+      <div class="nav-btns">
+        <button class="btn-back" onclick="goStep(3)">Voltar</button>
+        <button class="btn-next" onclick="submitForm()">Próximo <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-title" style="margin-top:8px">Tudo certo! 🎉</div>
+    <div class="success-msg"><strong>Ao abrir o WhatsApp, envie a mensagem preenchida.</strong> Em breve nossa equipe entrará em contato pelo WhatsApp ou e-mail.</div>
+    <div class="summary-card">
+      <div class="summary-title">Resumo do cadastro</div>
+      <div id="summaryContent"></div>
+    </div>
+    <a id="wppBtn" class="wpp-btn" href="#" target="_blank">
+      <i class="ti ti-brand-whatsapp" style="font-size:20px"></i>
+      Confirmar e Enviar pelo WhatsApp
+    </a>
+    <button class="btn-back" style="width:100%;margin-top:10px;padding:14px;" onclick="voltarCorrigir()">
+      <i class="ti ti-edit"></i> Voltar e corrigir dados
+    </button>
+  </div>
+
+</div>
+
+<script>
+  let tipo = 'fisica';
+  let renda = '';
+  let pagamento = '';
+
+  function setTipo(val, el) {
+    tipo = val;
+    document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    const lbl = document.getElementById('docLabel');
+    const nascLbl = document.getElementById('nascLabel');
+    const nomeLbl = document.getElementById('nomeLabel');
+    const inp = document.getElementById('cpf');
+    if (val === 'juridica') {
+      lbl.innerHTML = 'CNPJ <span class="required">*</span>';
+      inp.placeholder = '00.000.000/0001-00';
+      inp.maxLength = 18;
+      nascLbl.innerHTML = 'Data de constituição <span class="required">*</span>';
+      nomeLbl.innerHTML = 'Razão Social <span class="required">*</span>';
+      document.getElementById('nome').placeholder = 'Razão Social da empresa';
+    } else {
+      lbl.innerHTML = 'CPF <span class="required">*</span>';
+      inp.placeholder = '000.000.000-00';
+      inp.maxLength = 14;
+      nascLbl.innerHTML = 'Data de nascimento <span class="required">*</span>';
+      nomeLbl.innerHTML = 'Nome completo <span class="required">*</span>';
+      document.getElementById('nome').placeholder = 'Seu nome completo';
+    }
+    inp.value = '';
+    document.getElementById('cnpjStatus').style.display = 'none';
+  }
+
+  function validarCPF(cpf) {
+    cpf = cpf.replace(/\D/g, '');
+    if (cpf.length !== 11) return false;
+    if (/^(\d)\1{10}$/.test(cpf)) return false;
+    let soma = 0;
+    for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
+    let r = (soma * 10) % 11;
+    if (r === 10 || r === 11) r = 0;
+    if (r !== parseInt(cpf[9])) return false;
+    soma = 0;
+    for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
+    r = (soma * 10) % 11;
+    if (r === 10 || r === 11) r = 0;
+    return r === parseInt(cpf[10]);
+  }
+
+  function validarCNPJ(cnpj) {
+    cnpj = cnpj.replace(/\D/g, '');
+    if (cnpj.length !== 14) return false;
+    if (/^(\d)\1{13}$/.test(cnpj)) return false;
+
+    let tamanho = cnpj.length - 2;
+    let numeros = cnpj.substring(0, tamanho);
+    const digitos = cnpj.substring(tamanho);
+    let soma = 0;
+    let pos = tamanho - 7;
+
+    for (let i = tamanho; i >= 1; i--) {
+      soma += parseInt(numeros.charAt(tamanho - i)) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(0))) return false;
+
+    tamanho++;
+    numeros = cnpj.substring(0, tamanho);
+    soma = 0;
+    pos = tamanho - 7;
+
+    for (let i = tamanho; i >= 1; i--) {
+      soma += parseInt(numeros.charAt(tamanho - i)) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    return resultado === parseInt(digitos.charAt(1));
+  }
+
+  function setRenda(val, el) {
+    renda = val;
+    document.querySelectorAll('.renda-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function setPagamento(val, el) {
+    pagamento = val;
+    el.closest('.renda-options').querySelectorAll('.renda-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function maskDoc(el) {
+    let v = el.value.replace(/\D/g, '');
+    if (tipo === 'fisica') {
+      v = v.slice(0,11);
+      v = v.replace(/(\d{3})(\d)/, '$1.$2')
+           .replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+           .replace(/\.(\d{3})(\d)/, '.$1-$2');
+    } else {
+      v = v.slice(0,14);
+      v = v.replace(/(\d{2})(\d)/, '$1.$2')
+           .replace(/(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+           .replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2/$3')
+           .replace(/(\d{4})(\d)/, '$1-$2');
+      if (v.replace(/\D/g,'').length === 14) buscaCNPJ(v.replace(/\D/g,''));
+    }
+    el.value = v;
+  }
+
+  async function buscaCNPJ(cnpj) {
+    cnpj = cnpj.replace(/\D/g, '');
+    if (!validarCNPJ(cnpj)) return;
+    const status = document.getElementById('cnpjStatus');
+    const msg = document.getElementById('cnpjStatusMsg');
+    status.style.display = 'flex';
+    msg.textContent = 'Consultando CNPJ...';
+    try {
+      // allorigins.win atua como proxy CORS para chamadas de browser (ex: GitHub Pages)
+      const targetUrl = 'https://receitaws.com.br/v1/cnpj/' + cnpj;
+      const r = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl));
+      if (!r.ok) {
+        msg.textContent = '⚠️ Não foi possível consultar. Preencha manualmente.';
+        return;
+      }
+      const d = await r.json();
+      if (d.status === 'ERROR' || !d.nome) {
+        msg.textContent = '⚠️ CNPJ não encontrado na Receita Federal.';
+        return;
+      }
+      // Razão Social
+      if (d.nome) document.getElementById('nome').value = d.nome;
+      // Data de abertura (ReceitaWS já retorna no formato DD/MM/AAAA)
+      if (d.abertura) document.getElementById('nascimento').value = d.abertura;
+      // Endereço
+      if (d.logradouro) document.getElementById('endereco').value = (d.tipo ? d.tipo + ' ' : '') + d.logradouro;
+      if (d.numero) document.getElementById('numero').value = d.numero;
+      if (d.complemento) document.getElementById('complemento').value = d.complemento;
+      if (d.bairro) document.getElementById('bairro').value = d.bairro;
+      if (d.municipio) document.getElementById('cidade').value = d.municipio;
+      if (d.uf) document.getElementById('estado').value = d.uf;
+      if (d.cep) {
+        const cepFmt = d.cep.replace(/\D/g,'');
+        document.getElementById('cep').value = cepFmt.slice(0,5) + '-' + cepFmt.slice(5);
+      }
+      msg.textContent = '✅ Dados preenchidos automaticamente!';
+      setTimeout(() => { status.style.display = 'none'; }, 3000);
+    } catch(e) {
+      msg.textContent = '⚠️ Não foi possível consultar. Preencha manualmente.';
+    }
+  }
+
+  function maskDate(el) {
+    let v = el.value.replace(/\D/g, '');
+    if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+    if (v.length > 5) v = v.slice(0,5) + '/' + v.slice(5);
+    el.value = v.slice(0,10);
+  }
+
+  function maskPhone(el) {
+    let v = el.value.replace(/\D/g, '').slice(0,11);
+    if (v.length <= 10) {
+      v = v.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2');
+    } else {
+      v = v.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
+    }
+    el.value = v;
+  }
+
+  function maskCepAuto(el) {
+    let v = el.value.replace(/\D/g, '').slice(0,8);
+    if (v.length > 5) v = v.slice(0,5) + '-' + v.slice(5);
+    el.value = v;
+    if (v.replace(/\D/g,'').length === 8) buscaCepAuto(v.replace(/\D/g,''));
+  }
+
+  async function buscaCepAuto(cep) {
+    try {
+      const r = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+      const d = await r.json();
+      if (!d.erro) {
+        if (d.logradouro) document.getElementById('endereco').value = d.logradouro;
+        if (d.bairro) document.getElementById('bairro').value = d.bairro;
+        if (d.localidade) document.getElementById('cidade').value = d.localidade;
+        if (d.uf) document.getElementById('estado').value = d.uf;
+        document.getElementById('numero').focus();
+      }
+    } catch(e) {}
+  }
+
+  function maskMoney(el) {
+    let v = el.value.replace(/\D/g,'');
+    v = (parseInt(v) || 0).toLocaleString('pt-BR');
+    el.value = v;
+  }
+
+  function goStep(n) {
+    if (n === 2) {
+      const nome = document.getElementById('nome').value.trim();
+      const cpf  = document.getElementById('cpf').value.trim();
+      const nasc = document.getElementById('nascimento').value.trim();
+      if (!nome || !cpf || !nasc) { alert('Preencha todos os campos obrigatórios!'); return; }
+      if (tipo === 'fisica' && !validarCPF(cpf)) {
+        alert('CPF inválido. Verifique o número digitado.');
+        document.getElementById('cpf').focus(); return;
+      }
+      if (tipo === 'juridica' && !validarCNPJ(cpf)) {
+        alert('CNPJ inválido. Verifique o número digitado.');
+        document.getElementById('cpf').focus(); return;
+      }
+    }
+    if (n === 3) {
+      const email = document.getElementById('email').value.trim();
+      const cel   = document.getElementById('celular').value.trim();
+      if (!email || !cel || !renda) { alert('Preencha e-mail, celular e selecione a renda!'); return; }
+    }
+    if (n === 4) {
+      const num = document.getElementById('numero').value.trim();
+      if (!num) { alert('Informe o número do endereço!'); return; }
+    }
+    [1,2,3,4].forEach(i => {
+      const stepEl = document.getElementById('step'+i);
+      if (stepEl) stepEl.classList.add('hidden');
+      const dot = document.getElementById('dot'+i);
+      if (dot) {
+        dot.className = 'step-dot ' + (i < n ? 'done' : i === n ? 'active' : 'pending');
+        dot.textContent = i < n ? '✓' : i;
+      }
+      if (i < 4) {
+        const line = document.getElementById('line'+i);
+        if (line) line.classList.toggle('done', i < n);
+      }
+    });
+    document.getElementById('step'+n).classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function voltarCorrigir() {
+    document.getElementById('successScreen').style.display = 'none';
+    document.getElementById('formArea').style.display = 'block';
+    goStep(4);
+  }
+
+  function submitForm() {
+    const credito = document.getElementById('credito').value.trim();
+    if (!credito) { alert('Informe o crédito contratado!'); return; }
+    if (!pagamento) { alert('Selecione a forma de pagamento da 1ª parcela!'); return; }
+
+    document.getElementById('formArea').style.display = 'none';
+    const sc = document.getElementById('successScreen');
+    sc.style.display = 'flex';
+
+    const nome  = document.getElementById('nome').value;
+    const cpf   = document.getElementById('cpf').value;
+    const nasc  = document.getElementById('nascimento').value;
+    const email = document.getElementById('email').value;
+    const cel   = document.getElementById('celular').value;
+    const cep   = document.getElementById('cep').value;
+    const end   = document.getElementById('endereco').value;
+    const nnum  = document.getElementById('numero').value;
+    const comp  = document.getElementById('complemento').value;
+    const bairro= document.getElementById('bairro').value;
+    const cidade= document.getElementById('cidade').value;
+    const uf    = document.getElementById('estado').value;
+
+    const rows = [
+      ['Tipo', tipo === 'fisica' ? 'Pessoa Física' : 'Pessoa Jurídica'],
+      ['Nome', nome],
+      [tipo === 'fisica' ? 'CPF' : 'CNPJ', cpf],
+      [tipo === 'fisica' ? 'Nascimento' : 'Constituição', nasc],
+      ['E-mail', email],
+      ['Celular', cel],
+      ['Renda', renda],
+      ['Endereço', `${end}, ${nnum}${comp ? ' '+comp : ''} — ${bairro}`],
+      ['Cidade / UF', `${cidade} / ${uf}`],
+      ['CEP', cep],
+      ['Crédito', 'R$ ' + credito],
+      ['Pgto 1ª Parcela', pagamento],
+    ];
+
+    document.getElementById('summaryContent').innerHTML = rows
+      .map(r => `<div class="summary-row"><span>${r[0]}</span><span>${r[1]}</span></div>`)
+      .join('');
+
+    const endCompleto = [end, nnum, comp, bairro].filter(Boolean).join(', ');
+    const nascLabel = tipo === 'fisica' ? 'Nascimento' : 'Constituição';
+    const msg = encodeURIComponent(
+      `🏠 *Nova solicitação de Consórcio*\n\n` +
+      `*Tipo:* ${tipo === 'fisica' ? 'Pessoa Física' : 'Pessoa Jurídica'}\n` +
+      `*Nome:* ${nome}\n` +
+      `*${tipo === 'fisica' ? 'CPF' : 'CNPJ'}:* ${cpf}\n` +
+      `*${nascLabel}:* ${nasc}\n\n` +
+      `*E-mail:* ${email}\n` +
+      `*Celular:* ${cel}\n` +
+      `*Renda mensal:* ${renda}\n\n` +
+      `*CEP:* ${cep}\n` +
+      `*Endereço:* ${endCompleto}\n` +
+      `*Cidade/UF:* ${cidade}/${uf}\n\n` +
+      `*Crédito contratado:* R$ ${credito}\n` +
+      `*Pgto 1ª Parcela:* ${pagamento}` +
+      (vendedor ? `\n*Vendedor:* ${vendedor}` : '')
+    );
+    document.getElementById('wppBtn').href = `https://api.whatsapp.com/send/?phone=5515998001647&text=${msg}&type=phone_number&app_absent=0`;
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
