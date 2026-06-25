@@ -663,23 +663,52 @@
     status.style.display = 'flex';
     msg.textContent = 'Consultando CNPJ...';
     try {
-      // allorigins.win atua como proxy CORS para chamadas de browser (ex: GitHub Pages)
-      const targetUrl = 'https://receitaws.com.br/v1/cnpj/' + cnpj;
-      const r = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl));
-      if (!r.ok) {
-        msg.textContent = '⚠️ Não foi possível consultar. Preencha manualmente.';
+      // Tenta BrasilAPI (principal), com fallback para ReceitaWS via proxy se falhar
+      let d = null;
+      try {
+        const r1 = await fetch('https://brasilapi.com.br/api/cnpj/v1/' + cnpj);
+        if (r1.ok) {
+          const j = await r1.json();
+          if (j.razao_social) {
+            // Normaliza para formato comum
+            d = {
+              nome: j.razao_social,
+              abertura: j.data_inicio_atividade ? (() => { const p = j.data_inicio_atividade.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; })() : '',
+              logradouro: j.logradouro || '',
+              tipo: j.descricao_tipo_de_logradouro || '',
+              numero: j.numero || '',
+              complemento: j.complemento || '',
+              bairro: j.bairro || '',
+              municipio: j.municipio || '',
+              uf: j.uf || '',
+              cep: j.cep || ''
+            };
+          }
+        }
+      } catch(e1) {}
+
+      // Fallback: ReceitaWS via proxy corsproxy.io
+      if (!d) {
+        try {
+          const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://receitaws.com.br/v1/cnpj/' + cnpj);
+          const r2 = await fetch(proxyUrl);
+          if (r2.ok) {
+            const j = await r2.json();
+            if (j.nome && j.status !== 'ERROR') {
+              d = { nome: j.nome, abertura: j.abertura || '', logradouro: j.logradouro || '',
+                    tipo: j.tipo || '', numero: j.numero || '', complemento: j.complemento || '',
+                    bairro: j.bairro || '', municipio: j.municipio || '', uf: j.uf || '', cep: j.cep || '' };
+            }
+          }
+        } catch(e2) {}
+      }
+
+      if (!d) {
+        msg.textContent = '⚠️ CNPJ não encontrado ou serviço indisponível. Preencha manualmente.';
         return;
       }
-      const d = await r.json();
-      if (d.status === 'ERROR' || !d.nome) {
-        msg.textContent = '⚠️ CNPJ não encontrado na Receita Federal.';
-        return;
-      }
-      // Razão Social
       if (d.nome) document.getElementById('nome').value = d.nome;
-      // Data de abertura (ReceitaWS já retorna no formato DD/MM/AAAA)
       if (d.abertura) document.getElementById('nascimento').value = d.abertura;
-      // Endereço
       if (d.logradouro) document.getElementById('endereco').value = (d.tipo ? d.tipo + ' ' : '') + d.logradouro;
       if (d.numero) document.getElementById('numero').value = d.numero;
       if (d.complemento) document.getElementById('complemento').value = d.complemento;
